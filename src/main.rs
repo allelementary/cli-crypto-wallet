@@ -109,7 +109,7 @@ fn main() {
                 services::account::AccountService::login(account_name);
             }
             AccountCommands::List => {
-                println!("Account list called");
+                services::account::AccountService::list();
             }
             AccountCommands::Logout => {
                 services::account::AccountService::logout();
@@ -118,7 +118,7 @@ fn main() {
                 println!("Account balance called");
             }
             AccountCommands::Info => {
-                println!("Account info called");
+                services::account::AccountService::account_info();
             }
         },
         Commands::Network { subcommand } => match subcommand {

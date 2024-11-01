@@ -7,6 +7,9 @@
 use std::fs;
 use std::io::{self, Write};
 use bip39::{Mnemonic, Language};
+use ethers::core::utils::hex;
+use ethers::core::k256::ecdsa::SigningKey;
+use ethers::signers::LocalWallet;
 use ethers::prelude::*;
 use serde_json::{json, Value};
 use aes_gcm::{
@@ -157,6 +160,101 @@ impl AccountService {
         } else {
             println!("Logout successful.");
         }
+    }
+
+    pub fn list() {
+        let entries = match fs::read_dir(STORAGE_DIR) {
+            Ok(entries) => entries,
+            Err(e) => {
+                println!("Failed to read storage directory: {}", e);
+                return;
+            }
+        };
+
+        println!("Available accounts:");
+        for entry in entries {
+            if let Ok(entry) = entry {
+                if let Some(filename) = entry.path().file_stem() {
+                    if let Some(account_name) = filename.to_str() {
+                        if account_name != "state" {
+                            println!("- {}", account_name);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn account_info() {
+        let state_data = match fs::read_to_string(STATE_FILE) {
+            Ok(data) => data,
+            Err(_) => {
+                println!("No user is currently logged in.");
+                return;
+            }
+        };
+
+        let state_json: Value = match serde_json::from_str(&state_data) {
+            Ok(json) => json,
+            Err(_) => {
+                println!("No user is currently logged in.");
+                return;
+            }
+        };
+
+        let account_name = state_json["logged_in_account"].as_str();
+        if account_name.is_none() {
+            println!("No user is currently logged in.");
+            return;
+        }
+
+        let account_name = account_name.unwrap();
+
+        let account_file = format!("{}/{}.json", STORAGE_DIR, account_name);
+        let account_data = match fs::read_to_string(&account_file) {
+            Ok(data) => data,
+            Err(e) => {
+                println!("Failed to read account data: {}", e);
+                return;
+            }
+        };
+
+        let account_json: Value = match serde_json::from_str(&account_data) {
+            Ok(json) => json,
+            Err(e) => {
+                println!("Failed to parse account data: {}", e);
+                return;
+            }
+        };
+
+        let encryption_key_str = account_json["encryption_key"].as_str().unwrap();
+        let encryption_key_bytes = hex::decode(encryption_key_str).expect("Failed to decode encryption key");
+        let encryption_key = Key::<Aes256Gcm>::from_slice(&encryption_key_bytes);
+
+        let encrypted_seed_phrase = account_json["encrypted_seed_phrase"].as_str().unwrap();
+
+        let seed_nonce_str = account_json["seed_nonce"].as_str().unwrap();
+        let seed_nonce_bytes = hex::decode(seed_nonce_str).expect("Failed to decode seed nonce");
+        let seed_nonce = Nonce::<Aes256Gcm>::from_slice(&seed_nonce_bytes);
+
+        let seed_phrase = match CryptoService::decrypt(&encrypted_seed_phrase, &encryption_key, &seed_nonce) {
+            Ok(decrypted) => decrypted,
+            Err(e) => {
+                println!("Decryption failed: {}", e);
+                return;
+            }
+        };
+
+        let mnemonic = Mnemonic::parse(&seed_phrase).expect("Failed to parse mnemonic");
+        let seed = mnemonic.to_seed("");
+        let signing_key = SigningKey::from_bytes((&seed[..32]).into()).expect("Failed to create signing key");
+        let wallet = LocalWallet::from(signing_key);
+        let wallet_address = wallet.address();
+        let private_key = hex::encode(wallet.signer().to_bytes());
+
+        println!("Account Info for '{}':", account_name);
+        println!("Wallet Address: {:?}", wallet_address);
+        println!("Private Key: {}", private_key);
     }
 
     fn get_password(prompt: &str) -> String {
