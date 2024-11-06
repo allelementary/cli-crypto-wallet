@@ -34,42 +34,31 @@ enum Commands {
 
 #[derive(Subcommand)]
 enum AccountCommands {
-    /// Create a new account
     Create {
-        /// Name of the account to create
         account_name: String,
     },
-    /// Login to an account
     Login {
-        /// Name of the account to login
         account_name: String,
     },
-    /// List all accounts
     List,
-    /// Logout from the current account
     Logout,
-    /// Display account balance
     Balance,
-    /// Display account information
     Info,
 }
 
 #[derive(Subcommand)]
 enum NetworkCommands {
-    /// Switch to a different network
     Switch {
-        /// Name of the network to switch to
         network_name: String,
+        url: Option<String>,
     },
-    /// List available networks
     List,
-    /// Add a new custom network
     Add {
-        /// Name of the new network
         network_name: String,
-        /// RPC URL of the new network
         #[arg(long)]
         rpc_url: String,
+        native_token: String,
+        chain_id: u64,
     },
 }
 
@@ -100,6 +89,8 @@ enum TxCommands {
 fn main() {
     let cli = Cli::parse();
 
+    let mut network_service = services::network::NetworkService::new();
+
     match &cli.command {
         Commands::Account { subcommand } => match subcommand {
             AccountCommands::Create { account_name } => {
@@ -122,17 +113,14 @@ fn main() {
             }
         },
         Commands::Network { subcommand } => match subcommand {
-            NetworkCommands::Switch { network_name } => {
-                println!("Network switch called with name: {}", network_name);
+            NetworkCommands::Switch { network_name, url } => {
+                network_service.switch_network(network_name, url.as_deref());
             }
             NetworkCommands::List => {
-                println!("Network list called");
+                network_service.list_networks();
             }
-            NetworkCommands::Add { network_name, rpc_url } => {
-                println!(
-                    "Network add called with name: {}, rpc-url: {}",
-                    network_name, rpc_url
-                );
+            NetworkCommands::Add { network_name, rpc_url, native_token, chain_id } => {
+                network_service.add_network(network_name, rpc_url, native_token, *chain_id);
             }
         },
         Commands::Tx { subcommand } => match subcommand {
