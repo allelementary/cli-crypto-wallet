@@ -33,12 +33,32 @@ impl NetworkService {
         );
 
         networks.insert(
+            "ethereum_sepolia".to_string(),
+            NetworkInfo {
+                name: "Ethereum Sepolia".to_string(),
+                url: None,
+                native_token: "ETH".to_string(),
+                chain_id: 11155111,
+            },
+        );
+
+        networks.insert(
             "polygon_mainnet".to_string(),
             NetworkInfo {
                 name: "Polygon Mainnet".to_string(),
                 url: None,
-                native_token: "MATIC".to_string(),
+                native_token: "POL".to_string(),
                 chain_id: 137,
+            },
+        );
+
+        networks.insert(
+            "polygon_amoy".to_string(),
+            NetworkInfo {
+                name: "Polygon Amoy".to_string(),
+                url: None,
+                native_token: "POL".to_string(),
+                chain_id: 80002,
             },
         );
 
@@ -53,6 +73,16 @@ impl NetworkService {
         );
 
         networks.insert(
+            "optimism_sepolia".to_string(),
+            NetworkInfo {
+                name: "Optimism Sepolia".to_string(),
+                url: None,
+                native_token: "ETH".to_string(),
+                chain_id: 11155420,
+            },
+        );
+
+        networks.insert(
             "bsc_mainnet".to_string(),
             NetworkInfo {
                 name: "Binance Smart Chain Mainnet".to_string(),
@@ -63,12 +93,32 @@ impl NetworkService {
         );
 
         networks.insert(
+            "bsc_testnet".to_string(),
+            NetworkInfo {
+                name: "Binance Smart Chain Testnet".to_string(),
+                url: None,
+                native_token: "BNB".to_string(),
+                chain_id: 97,
+            },
+        );
+
+        networks.insert(
             "arbitrum_mainnet".to_string(),
             NetworkInfo {
                 name: "Arbitrum Mainnet".to_string(),
                 url: None,
                 native_token: "ETH".to_string(),
                 chain_id: 42161,
+            },
+        );
+
+        networks.insert(
+            "arbitrum_sepolia".to_string(),
+            NetworkInfo {
+                name: "Arbitrum Sepolia".to_string(),
+                url: None,
+                native_token: "ETH".to_string(),
+                chain_id: 421614,
             },
         );
 
