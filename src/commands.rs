@@ -42,6 +42,9 @@ pub enum AccountCommands {
     List,
     Logout,
     Balance,
+    BalanceToken {
+        token_address: String,
+    },
     Info,
 }
 

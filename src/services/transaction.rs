@@ -10,7 +10,9 @@ use ethers::core::types::transaction::eip2718::TypedTransaction;
 use ethers::providers::{Http, Middleware, Provider, PendingTransaction};
 use ethers::signers::{LocalWallet, Signer};
 use ethers::types::Signature;
-use crate::config::{STATE_FILE, STORAGE_DIR};
+use ethers::contract::Contract;
+use ethers::abi::Abi;
+use crate::config::{STATE_FILE, STORAGE_DIR, ERC20_ABI};
 
 pub struct TransactionService {
     pub provider: Option<Arc<Provider<Http>>>,
@@ -163,8 +165,26 @@ impl TransactionService {
         println!("Wallet address: {:?}", wallet.address());
         let balance = provider.get_balance(wallet.address(), None).await?;
         let balance_eth = Self::wei_to_eth(balance);
+        // todo: replace ETH with network native token (get from current network)
         println!("Account balance: {} ETH", balance_eth);
         Ok(())
+    }
+
+    pub async fn get_token_balance(
+        &self,
+        token_address: &str,
+    ) -> Result<U256, Box<dyn Error>> {
+        let token_address = Address::from_str(token_address).map_err(|_| "Invalid token address format")?;
+        let wallet = self.wallet.as_ref().ok_or("Wallet not set")?;
+        let provider = self.provider.as_ref().ok_or("Provider not set")?;
+        let abi: Abi = serde_json::from_str(ERC20_ABI)?;
+        let contract = Contract::new(token_address, abi, provider.clone());
+        let balance: U256 = contract
+            .method::<_, U256>("balanceOf", wallet.address())?
+            .call()
+            .await?;
+        println!("Account balance: {} {:?}", balance, token_address);
+        Ok(balance)
     }
 
     fn wei_to_eth(wei: U256) -> String {

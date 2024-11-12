@@ -54,6 +54,11 @@ impl Orchestrator {
                     eprintln!("Failed to retrieve balance: {}", e);
                 }
             }
+            AccountCommands::BalanceToken { token_address } => {
+                if let Err(e) = self.transaction_service.get_token_balance(token_address).await {
+                    eprintln!("Failed to retrieve token balance: {}", e);
+                }
+            }
             AccountCommands::Info => {
                 AccountService::account_info();
             }
@@ -83,8 +88,6 @@ impl Orchestrator {
     pub async fn handle_tx_commands(&mut self, command: &TxCommands) {
         // todo: add send token <token-address>
         //  at the moment it sends only native
-        //  - add get token balance
-        //  How to get all wallet tokens balances?
         match command {
             TxCommands::Send {
                 amount,
