@@ -2,8 +2,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::io::{self, Write};
 use serde_json::{json, Value};
-
-const STORAGE_FILE: &str = "storage/networks.json";
+use crate::config::{STORAGE_FILE};
 
 #[derive(Debug, Clone)]
 pub struct NetworkInfo {
@@ -254,6 +253,36 @@ impl NetworkService {
                 };
                 self.networks.insert(key.clone(), network_info);
             }
+        }
+    }
+
+    pub fn get_provider_url(&self) -> Option<String> {
+        if let Some(current_network_name) = &self.current_network {
+            let current_network = self.networks.get(current_network_name);
+            if let Some(network) = current_network {
+                network.url.clone()
+            } else {
+                println!("Network '{}' not found.", current_network_name);
+                None
+            }
+        } else {
+            println!("No network is currently selected.");
+            None
+        }
+    }
+
+    pub fn network_info(&self) {
+        if let Some(current_network_name) = &self.current_network {
+            if let Some(network) = self.networks.get(current_network_name) {
+                println!("Current network: {}", network.name);
+                println!("Chain ID: {}", network.chain_id);
+                println!("Native token: {}", network.native_token);
+                println!("RPC URL: {:?}", network.url.as_deref().unwrap_or(&"None".to_string()));
+            } else {
+                println!("Network '{}' not found.", current_network_name);
+            }
+        } else {
+            println!("No network is currently selected.");
         }
     }
 }

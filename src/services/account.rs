@@ -4,7 +4,7 @@
     - Store account information securely using encryption.
     - List available accounts, perform login/logout, etc.
 */
-use std::fs;
+use std::{fs, path::Path};
 use std::io::{self, Write};
 use bip39::{Mnemonic, Language};
 use ethers::core::utils::hex;
@@ -17,9 +17,7 @@ use aes_gcm::{
     Aes256Gcm, Key
 };
 use crate::services::crypto::CryptoService;
-
-const STORAGE_DIR: &str = "storage";
-const STATE_FILE: &str = "storage/state.json";
+use crate::config::{STORAGE_DIR, STATE_FILE};
 
 pub struct AccountService;
 
@@ -67,8 +65,10 @@ impl AccountService {
             "encryption_key": hex::encode(encryption_key),
         });
 
-        fs::create_dir_all(STORAGE_DIR).expect("Failed to create storage directory");
-        let account_file = format!("{}/{}.json", STORAGE_DIR, account_name);
+        let account_dir = Path::new(STORAGE_DIR).join(account_name);
+        fs::create_dir_all(&account_dir).expect("Failed to create account directory");
+
+        let account_file = account_dir.join("account_info.json");
 
         if let Err(e) = fs::write(&account_file, account_data.to_string()) {
             println!("Unable to write account data to file: {}", e);
@@ -78,7 +78,7 @@ impl AccountService {
     }
 
     pub fn login(account_name: &str) {
-        let account_file = format!("{}/{}.json", STORAGE_DIR, account_name);
+        let account_file = Path::new(STORAGE_DIR).join(account_name).join("account_info.json");
         let account_data = match fs::read_to_string(&account_file) {
             Ok(data) => data,
             Err(e) => {
@@ -210,7 +210,7 @@ impl AccountService {
 
         let account_name = account_name.unwrap();
 
-        let account_file = format!("{}/{}.json", STORAGE_DIR, account_name);
+        let account_file = Path::new(STORAGE_DIR).join(account_name).join("account_info.json");
         let account_data = match fs::read_to_string(&account_file) {
             Ok(data) => data,
             Err(e) => {
@@ -255,6 +255,31 @@ impl AccountService {
         println!("Account Info for '{}':", account_name);
         println!("Wallet Address: {:?}", wallet_address);
         println!("Private Key: {}", private_key);
+    }
+
+    pub fn get_wallet() -> Option<LocalWallet> {
+        let state_data = fs::read_to_string(STATE_FILE).ok()?;
+        let state_json: Value = serde_json::from_str(&state_data).ok()?;
+        let account_name = state_json["logged_in_account"].as_str()?;
+        let account_file = Path::new(STORAGE_DIR).join(account_name).join("account_info.json");
+        let account_data = fs::read_to_string(&account_file).ok()?;
+        let account_json: Value = serde_json::from_str(&account_data).ok()?;
+
+        let encryption_key_bytes = hex::decode(account_json["encryption_key"].as_str().unwrap()).ok()?;
+        let encryption_key = Key::<Aes256Gcm>::from_slice(&encryption_key_bytes);
+
+        let seed_nonce = hex::decode(account_json["seed_nonce"].as_str().unwrap()).ok()?;
+        let seed_nonce = Nonce::<Aes256Gcm>::from_slice(&seed_nonce);
+
+        let encrypted_seed = account_json["encrypted_seed_phrase"].as_str().unwrap();
+        let seed_phrase = CryptoService::decrypt(&encrypted_seed, &encryption_key, &seed_nonce).ok()?;
+
+        let mnemonic = Mnemonic::parse(&seed_phrase).expect("Failed to parse mnemonic");
+        let seed = mnemonic.to_seed("");
+        let signing_key = SigningKey::from_bytes((&seed[..32]).into()).expect("Failed to create signing key");
+        let wallet = LocalWallet::from(signing_key);
+
+        Some(wallet)
     }
 
     fn get_password(prompt: &str) -> String {

@@ -47,7 +47,15 @@ cargo run -- network list
 ```
 - Add a new network:
 ```bash
-cargo run -- network add <network-name> <network-url>
+cargo run -- network add --rpc-url <network-url> <network-name> <native-token> <chain-id>
+```
+- Set url for existing network:
+```bash
+cargo run -- network set-url <network-name> <network-url>
+```
+- Get current network information:
+```bash
+cargo run -- network info
 ```
 
 ### 3. Transaction Management
