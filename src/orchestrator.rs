@@ -17,10 +17,17 @@ impl Orchestrator {
     }
 
     pub async fn handle_command(&mut self, command: &Commands) {
-        let wallet = AccountService::get_wallet();
-        let provider_url = self.network_service.get_provider_url();
-        self.transaction_service.set_provider(provider_url.unwrap().as_str());
-        self.transaction_service.set_wallet(wallet.unwrap());
+        if let Some(wallet) = AccountService::get_wallet() {
+            self.transaction_service.set_wallet(wallet);
+        } else {
+            eprintln!("Warning: Wallet not set. Please log in or create a wallet");
+        }
+
+        if let Some(provider_url) = self.network_service.get_provider_url() {
+            self.transaction_service.set_provider(provider_url.as_str());
+        } else {
+            eprintln!("Warning: Provider URL not set. Some commands may not work until the provider is set.");
+        }
 
         match command {
             Commands::Account { subcommand } => {
@@ -50,7 +57,8 @@ impl Orchestrator {
                 AccountService::logout();
             }
             AccountCommands::Balance => {
-                if let Err(e) = self.transaction_service.get_balance().await {
+                let native_token = self.network_service.get_native_token();
+                if let Err(e) = self.transaction_service.get_balance(native_token.unwrap()).await {
                     eprintln!("Failed to retrieve balance: {}", e);
                 }
             }
@@ -86,8 +94,6 @@ impl Orchestrator {
     }
 
     pub async fn handle_tx_commands(&mut self, command: &TxCommands) {
-        // todo: add send token <token-address>
-        //  at the moment it sends only native
         match command {
             TxCommands::Send {
                 amount,

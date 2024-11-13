@@ -218,14 +218,13 @@ impl TransactionService {
         Ok(())
     }
 
-    pub async fn get_balance(&self) -> Result<(), Box<dyn Error>> {
+    pub async fn get_balance(&self, native_token: String) -> Result<(), Box<dyn Error>> {
         let wallet = self.wallet.as_ref().ok_or("Wallet not set")?;
         let provider = self.provider.as_ref().ok_or("Provider not set")?;
         println!("Wallet address: {:?}", wallet.address());
         let balance = provider.get_balance(wallet.address(), None).await?;
         let balance_eth = Self::wei_to_eth(balance);
-        // todo: replace ETH with network native token (get from current network)
-        println!("Account balance: {} ETH", balance_eth);
+        println!("Account balance: {} {}", balance_eth, native_token);
         Ok(())
     }
 

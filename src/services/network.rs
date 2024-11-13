@@ -54,7 +54,7 @@ impl NetworkService {
         networks.insert(
             "polygon_amoy".to_string(),
             NetworkInfo {
-                name: "Polygon Amoy".to_string(),
+                name: "polygon_amoy".to_string(),
                 url: None,
                 native_token: "POL".to_string(),
                 chain_id: 80002,
@@ -283,6 +283,20 @@ impl NetworkService {
             }
         } else {
             println!("No network is currently selected.");
+        }
+    }
+
+    pub fn get_native_token(&self) -> Option<String> {
+        if let Some(current_network_name) = &self.current_network {
+            if let Some(network) = self.networks.get(current_network_name) {
+                Some(network.native_token.clone())
+            } else {
+                println!("Network '{}' not found.", current_network_name);
+                None
+            }
+        } else {
+            println!("No network is currently selected.");
+            None
         }
     }
 }
