@@ -26,9 +26,13 @@ cargo run -- account list
 ```bash
 cargo run -- account logout
 ```
-- Display account balance:
+- Display native token account balance:
 ```bash
 cargo run -- account balance
+```
+- Display token account balance:
+```bash
+cargo run -- account balance-token <token-address>
 ```
 - Display account information:
 ```bash
@@ -60,9 +64,14 @@ cargo run -- network info
 
 ### 3. Transaction Management
 
-- Send a transaction:
+- Send a native token transaction:
 ```bash
 cargo run -- tx send <amount> <destination-address>
+```
+
+- Send a token transaction:
+```bash
+cargo run -- tx send-token <amount> <destination-address> <token-address>
 ```
 
 Optionally gas price and gas limit can be specified:

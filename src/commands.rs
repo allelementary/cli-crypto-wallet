@@ -14,17 +14,14 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Account management commands
     Account {
         #[command(subcommand)]
         subcommand: AccountCommands,
     },
-    /// Network management commands
     Network {
         #[command(subcommand)]
         subcommand: NetworkCommands,
     },
-    /// Transaction-related commands
     Tx {
         #[command(subcommand)]
         subcommand: TxCommands,
@@ -71,24 +68,25 @@ pub enum NetworkCommands {
 
 #[derive(Subcommand)]
 pub enum TxCommands {
-    /// Send a transaction
     Send {
-        /// Amount to send
         amount: String,
-        /// Destination address
         destination_address: String,
-        /// Gas price (optional)
         #[arg(long)]
         gas_price: Option<String>,
-        /// Gas limit (optional)
         #[arg(long)]
         gas_limit: Option<String>,
     },
-    /// View transaction history
+    SendToken {
+        amount: String,
+        destination_address: String,
+        token_address: String,
+        #[arg(long)]
+        gas_price: Option<String>,
+        #[arg(long)]
+        gas_limit: Option<String>,
+    },
     History,
-    /// Get transaction details
     Info {
-        /// Transaction hash
         transaction_hash: String,
     },
 }

@@ -102,6 +102,20 @@ impl Orchestrator {
                     Err(e) => println!("Failed to send transaction: {}", e),
                 }
             }
+            TxCommands::SendToken {
+                amount,
+                destination_address,
+                token_address,
+                gas_price,
+                gas_limit,
+            } => {
+                match self.transaction_service.send_token(
+                    destination_address, amount, token_address, gas_price.as_deref(), gas_limit.as_deref()
+                ).await {
+                    Ok(tx_hash) => println!("Transaction sent successfully. Hash: {}", tx_hash),
+                    Err(e) => println!("Failed to send transaction: {}", e),
+                }
+            }
             TxCommands::History => {
                 self.transaction_service.history();
             }

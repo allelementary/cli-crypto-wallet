@@ -111,9 +111,14 @@ impl TransactionService {
             None => provider.estimate_gas(&typed_tx, None).await?,
         };
 
+        let nonce = provider
+            .get_transaction_count(wallet.address(), None)
+            .await?;
+
         let chain_id = provider.get_chainid().await?;
         typed_tx.set_chain_id(chain_id.as_u64());
         typed_tx.set_gas(gas_limit_in_units);
+        typed_tx.set_nonce(nonce);
 
         let signature: Signature = wallet.sign_transaction(&typed_tx).await?;
         let signed_tx_bytes = typed_tx.rlp_signed(&signature);
@@ -122,6 +127,60 @@ impl TransactionService {
         println!("Transaction sent. Hash: {:#x}", tx_hash);
 
         self.save_history_to_file(&typed_tx);
+
+        Ok(format!("{:#x}", tx_hash))
+    }
+
+    pub async fn send_token(
+        &mut self,
+        to: &str,
+        value: &str,
+        token_address: &str,
+        gas_price: Option<&str>,
+        gas_limit: Option<&str>,
+    ) -> Result<String, Box<dyn Error>> {
+        let to_address = Address::from_str(to).map_err(|_| "Invalid destination address format")?;
+        let value_in_wei = U256::from_dec_str(value).map_err(|_| "Invalid amount format")?;
+
+        let provider = self.provider.as_ref().ok_or("Provider not set")?;
+        let wallet = self.wallet.as_ref().ok_or("Wallet not set")?;
+
+        let gas_price_in_wei = match gas_price {
+            Some(gp) => U256::from_dec_str(gp).map_err(|_| "Invalid gas price format")?,
+            None => provider.get_gas_price().await?,
+        };
+
+        let token_address = Address::from_str(token_address).map_err(|_| "Invalid token address format")?;
+        let abi: Abi = serde_json::from_str(ERC20_ABI)?;
+        let contract = Contract::new(token_address, abi, provider.clone());
+        let tx = contract.method::<(Address, U256), bool>("transfer", (to_address, value_in_wei))?
+            .from(wallet.address())
+            .gas_price(gas_price_in_wei);
+
+        let mut tx_request = tx.tx;
+
+        let gas_limit_in_units = match gas_limit {
+            Some(gl) => U256::from_dec_str(gl).map_err(|_| "Invalid gas limit format")?,
+            None => provider.estimate_gas(&tx_request, None).await?,
+        };
+
+        let nonce = provider
+            .get_transaction_count(wallet.address(), None)
+            .await?;
+
+        let chain_id = provider.get_chainid().await?;
+        tx_request.set_chain_id(chain_id.as_u64());
+        tx_request.set_gas(gas_limit_in_units);
+        tx_request.set_nonce(nonce);
+
+        let typed_tx: TypedTransaction = tx_request.into();
+
+        let signature = wallet.sign_transaction(&typed_tx).await?;
+        let signed_tx_bytes = typed_tx.rlp_signed(&signature);
+        let pending_tx: PendingTransaction<'_, Http> = provider.send_raw_transaction(signed_tx_bytes).await?;
+
+        let tx_hash = pending_tx.tx_hash();
+        println!("Token transfer sent. Hash: {:#x}", tx_hash);
 
         Ok(format!("{:#x}", tx_hash))
     }
@@ -146,7 +205,7 @@ impl TransactionService {
         }
     }
 
-    pub async fn info(&self, tx_hash: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn info(&self, tx_hash: &str) -> Result<(), Box<dyn Error>> {
         let provider = self.provider.as_ref().ok_or("Provider not set")?;
 
         let hash: H256 = tx_hash.parse()?;
