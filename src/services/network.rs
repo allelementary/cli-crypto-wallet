@@ -24,7 +24,7 @@ impl NetworkService {
         networks.insert(
             "ethereum_mainnet".to_string(),
             NetworkInfo {
-                name: "Ethereum Mainnet".to_string(),
+                name: "ethereum".to_string(),
                 url: None,
                 native_token: "ETH".to_string(),
                 chain_id: 1,
@@ -34,7 +34,7 @@ impl NetworkService {
         networks.insert(
             "ethereum_sepolia".to_string(),
             NetworkInfo {
-                name: "Ethereum Sepolia".to_string(),
+                name: "ethereum_sepolia".to_string(),
                 url: None,
                 native_token: "ETH".to_string(),
                 chain_id: 11155111,
@@ -44,7 +44,7 @@ impl NetworkService {
         networks.insert(
             "polygon_mainnet".to_string(),
             NetworkInfo {
-                name: "Polygon Mainnet".to_string(),
+                name: "polygon".to_string(),
                 url: None,
                 native_token: "POL".to_string(),
                 chain_id: 137,
@@ -64,7 +64,7 @@ impl NetworkService {
         networks.insert(
             "optimism_mainnet".to_string(),
             NetworkInfo {
-                name: "Optimism Mainnet".to_string(),
+                name: "optimism".to_string(),
                 url: None,
                 native_token: "ETH".to_string(),
                 chain_id: 10,
@@ -74,7 +74,7 @@ impl NetworkService {
         networks.insert(
             "optimism_sepolia".to_string(),
             NetworkInfo {
-                name: "Optimism Sepolia".to_string(),
+                name: "optimism_sepolia".to_string(),
                 url: None,
                 native_token: "ETH".to_string(),
                 chain_id: 11155420,
@@ -84,7 +84,7 @@ impl NetworkService {
         networks.insert(
             "bsc_mainnet".to_string(),
             NetworkInfo {
-                name: "Binance Smart Chain Mainnet".to_string(),
+                name: "bsc".to_string(),
                 url: None,
                 native_token: "BNB".to_string(),
                 chain_id: 56,
@@ -94,7 +94,7 @@ impl NetworkService {
         networks.insert(
             "bsc_testnet".to_string(),
             NetworkInfo {
-                name: "Binance Smart Chain Testnet".to_string(),
+                name: "bsc_testnet".to_string(),
                 url: None,
                 native_token: "BNB".to_string(),
                 chain_id: 97,
@@ -104,7 +104,7 @@ impl NetworkService {
         networks.insert(
             "arbitrum_mainnet".to_string(),
             NetworkInfo {
-                name: "Arbitrum Mainnet".to_string(),
+                name: "arbitrum".to_string(),
                 url: None,
                 native_token: "ETH".to_string(),
                 chain_id: 42161,
@@ -114,7 +114,7 @@ impl NetworkService {
         networks.insert(
             "arbitrum_sepolia".to_string(),
             NetworkInfo {
-                name: "Arbitrum Sepolia".to_string(),
+                name: "arbitrum_sepolia".to_string(),
                 url: None,
                 native_token: "ETH".to_string(),
                 chain_id: 421614,
@@ -298,5 +298,9 @@ impl NetworkService {
             println!("No network is currently selected.");
             None
         }
+    }
+
+    pub fn get_network_name(&self) -> Option<String> {
+        self.current_network.clone()
     }
 }

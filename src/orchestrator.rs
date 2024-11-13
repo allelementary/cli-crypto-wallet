@@ -101,11 +101,11 @@ impl Orchestrator {
                 gas_price,
                 gas_limit,
             } => {
-                match self.transaction_service.send(
-                    destination_address, amount, gas_price.as_deref(), gas_limit.as_deref()
+                let network_name = self.network_service.get_network_name();
+                if let Err(e) = self.transaction_service.send(
+                    destination_address, amount, gas_price.as_deref(), gas_limit.as_deref(), network_name.unwrap().as_str()
                 ).await {
-                    Ok(tx_hash) => println!("Transaction sent successfully. Hash: {}", tx_hash),
-                    Err(e) => println!("Failed to send transaction: {}", e),
+                    println!("Failed to send transaction: {}", e);
                 }
             }
             TxCommands::SendToken {
@@ -115,20 +115,20 @@ impl Orchestrator {
                 gas_price,
                 gas_limit,
             } => {
-                match self.transaction_service.send_token(
-                    destination_address, amount, token_address, gas_price.as_deref(), gas_limit.as_deref()
+                let network_name = self.network_service.get_network_name();
+                if let Err(e) = self.transaction_service.send_token(
+                    destination_address, amount, token_address, gas_price.as_deref(), gas_limit.as_deref(), network_name.unwrap().as_str()
                 ).await {
-                    Ok(tx_hash) => println!("Transaction sent successfully. Hash: {}", tx_hash),
-                    Err(e) => println!("Failed to send transaction: {}", e),
+                    println!("Failed to send transaction: {}", e);
                 }
             }
             TxCommands::History => {
-                self.transaction_service.history();
+                let network_name = self.network_service.get_network_name();
+                self.transaction_service.history(network_name.unwrap().as_str());
             }
             TxCommands::Info { transaction_hash } => {
-                match self.transaction_service.info(transaction_hash).await {
-                    Ok(_) => println!("Transaction info retrieved successfully."),
-                    Err(e) => println!("Failed to retrieve transaction info: {}", e),
+                if let Err(e) = self.transaction_service.info(transaction_hash).await {
+                    println!("Failed to retrieve transaction info: {}", e);
                 }
             }
         }
