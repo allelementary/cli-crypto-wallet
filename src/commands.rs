@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(
-    name = "vault-cli",
+    name = "vaulty",
     version = "1.0",
     author = "Mikhail Antonov <allelementaryfor@gmail.com>",
     about = "CLI Crypto Wallet Application"
