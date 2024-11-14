@@ -1,7 +1,13 @@
 [package]
 name = "vaulty"
 version = "0.1.0"
+authors = ["Mikhail Antonov <allelementaryfor@gmail.com>"]
 edition = "2021"
+description = "A CLI crypto wallet for EVM-compatible blockchains. Manage multiple accounts, send transactions, retrieve balances, and manage custom networks securely."
+license = "MIT"
+repository = "https://github.com/allelementary/cli-crypto-wallet"
+homepage = "https://github.com/allelementary/cli-crypto-wallet"
+readme = "README.md"
 
 [dependencies]
 clap = { version = "4.5.18", features = ["derive"] }
