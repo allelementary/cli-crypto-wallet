@@ -2,6 +2,12 @@
 
 CLI wallet for EVM compatible blockchains
 
+<br/>
+<p align="center">
+<img src="./vaulty-logo.webp" width="400" alt="vaulty-logo">
+</p>
+<br/>
+
 ## About
 
 Vaulty is a command-line (CLI) crypto wallet application designed for EVM-compatible blockchains. It provides a secure, 
